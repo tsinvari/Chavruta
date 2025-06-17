@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let toggleHebrewButton = document.getElementById('toggleHebrewButton'); 
 
     let miriamAnzovinData = {}; // Will store combined video and insights data from localStorage
+    let reelimContentData = {}; // Will store Reelim tractate content
 
     const defaultYoutubeVideo = {
         title: "Welcome to Miriam Anzovin's Daf Reactions!",
@@ -258,6 +259,12 @@ document.addEventListener('DOMContentLoaded', () => {
             themes: [
                 "Laws of Niddah (menstruating woman)", "Family purity laws", "Ritual immersion (Mikvah)", "Impurity and purity definitions"
             ]
+        },
+        "Reelim": {
+            folios: 5, /* Updated to 5 folios (2a-5b) for the generated content */
+            themes: [
+                "Ethics of digital self-presentation", "Halachic perspectives on public content sharing", "Torah and TikTok: outreach in the age of Reels", "Time, attention, and distraction in a scroll-based world"
+            ]
         }
     };
 
@@ -268,7 +275,8 @@ document.addEventListener('DOMContentLoaded', () => {
         "Yevamot", "Ketubot", "Nedarim", "Nazir", "Sotah", "Gittin", "Kiddushin",
         "Bava Kamma", "Bava Metzia", "Bava Batra", "Sanhedrin", "Makkot",
         "Shevuot", "Avodah Zarah", "Horayot", "Zevahim", "Menahot", "Hullin",
-        "Bekhorot", "Arakhin", "Temurah", "Keritot", "Me'ilah", "Tamid", "Niddah"
+        "Bekhorot", "Arakhin", "Temurah", "Keritot", "Me'ilah", "Tamid", "Niddah",
+        "Reelim" 
     ];
 
     // Function to display messages in the content area (now targets the scrollable area)
@@ -358,7 +366,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to update Miriam's Insights text
     const updateMiriamInsights = (tractate, dafNumber) => {
         const key = `${tractate} ${dafNumber}`;
-        // Get insights from local storage data
         miriamInsightsText.textContent = (miriamAnzovinData.insights && miriamAnzovinData.insights[key]) || "No specific insights from Miriam Anzovin for this daf yet.";
     };
 
@@ -388,37 +395,58 @@ document.addEventListener('DOMContentLoaded', () => {
         updateMiriamInsights(tractate, dafNumber);
 
         try {
-            // Fetch 'a' side
-            const urlA = `https://www.sefaria.org/api/texts/${encodeURIComponent(tractate)}.${encodeURIComponent(dafNumber)}a?commentary=0`;
-            const responseA = await fetch(urlA);
-            if (responseA.ok) {
-                const dataA = await responseA.json();
-                if (dataA && dataA.he && dataA.text) {
-                    combinedHe.push(...dataA.he);
-                    combinedText.push(...dataA.text);
-                    finalRef = dataA.ref;
-                }
-            } else {
-                console.warn(`Could not fetch ${tractate} ${dafNumber}a: ${responseA.status}`);
-            }
+            if (tractate === "Reelim") {
+                // Fetch content from local JSON for Reelim
+                const dafA = reelimContentData.find(item => item.ref === `${tractate} ${dafNumber}a`);
+                const dafB = reelimContentData.find(item => item.ref === `${tractate} ${dafNumber}b`);
 
-            // Fetch 'b' side
-            const urlB = `https://www.sefaria.org/api/texts/${encodeURIComponent(tractate)}.${encodeURIComponent(dafNumber)}b?commentary=0`;
-            const responseB = await fetch(urlB);
-            if (responseB.ok) {
-                const dataB = await responseB.json();
-                if (dataB && dataB.he && dataB.text) {
-                    combinedHe.push(...dataB.he);
-                    combinedText.push(...dataB.text);
+                if (dafA) {
+                    combinedHe.push(...dafA.he);
+                    combinedText.push(...dafA.text);
+                    finalRef = dafA.ref;
+                }
+                if (dafB) {
+                    combinedHe.push(...dafB.he);
+                    combinedText.push(...dafB.text);
                     if (finalRef.includes('a')) {
                         finalRef = `${finalRef}-${dafNumber}b`;
                     } else {
-                        finalRef = dataB.ref;
+                        finalRef = dafB.ref;
                     }
                 }
             } else {
-                console.warn(`Could not fetch ${tractate} ${dafNumber}b: ${responseB.status}`);
+                // Fetch from Sefaria API for other tractates
+                const urlA = `https://www.sefaria.org/api/texts/${encodeURIComponent(tractate)}.${encodeURIComponent(dafNumber)}a?commentary=0`;
+                const responseA = await fetch(urlA);
+                if (responseA.ok) {
+                    const dataA = await responseA.json();
+                    if (dataA && dataA.he && dataA.text) {
+                        combinedHe.push(...dataA.he);
+                        combinedText.push(...dataA.text);
+                        finalRef = dataA.ref;
+                    }
+                } else {
+                    console.warn(`Could not fetch ${tractate} ${dafNumber}a: ${responseA.status}`);
+                }
+
+                const urlB = `https://www.sefaria.org/api/texts/${encodeURIComponent(tractate)}.${encodeURIComponent(dafNumber)}b?commentary=0`;
+                const responseB = await fetch(urlB);
+                if (responseB.ok) {
+                    const dataB = await responseB.json();
+                    if (dataB && dataB.he && dataB.text) {
+                        combinedHe.push(...dataB.he);
+                        combinedText.push(...dataB.text);
+                        if (finalRef.includes('a')) {
+                            finalRef = `${finalRef}-${dafNumber}b`;
+                        } else {
+                            finalRef = dataB.ref;
+                        }
+                    }
+                } else {
+                    console.warn(`Could not fetch ${tractate} ${dafNumber}b: ${responseB.status}`);
+                }
             }
+
 
             if (combinedHe.length > 0 || combinedText.length > 0) {
                 let contentHtml = '';
@@ -536,9 +564,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const loadReelimContent = async () => {
+        try {
+            const response = await fetch('data/reelim_content.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            reelimContentData = await response.json();
+            console.log("Reelim content loaded from local JSON.");
+        } catch (error) {
+            console.error("Could not load Reelim content:", error);
+            showMessageBox("Error loading Reelim tractate content.", true);
+            reelimContentData = []; // Ensure it's an empty array on error
+        }
+    };
+
     // Function to initialize tractate dropdown and load data
     const initializeApp = async () => { 
         initializeLocalStorageData(); // Load/init data from local storage first
+        await loadReelimContent(); // Load Reelim content
 
         tractateSelect.innerHTML = '<option value="">Select a Tractate</option>'; 
         talmudTractatesOrder.forEach(tractate => {
@@ -640,7 +684,6 @@ document.addEventListener('DOMContentLoaded', () => {
             hideLoginModal();
             setLoggedInState(true);
         } else if (enteredUsername === MIRIAM_USERNAME && enteredPassword === MIRIAM_PASSWORD) {
-            // Redirect to admin page for Miriam
             window.location.href = 'miriam-admin.html'; 
         }
         else {
