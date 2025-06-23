@@ -3,17 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chavruta - Miriam Anzovin</title>
-    <!-- Tailwind CSS CDN -->
+    <title>ShalomDaf!</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Inter Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Custom Styles -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="p-4 sm:p-6 lg:p-8">
     <div class="container mx-auto flex flex-col gap-8">
-        <!-- Main Top Section (Non-sticky) -->
         <div class="top-section-container bg-white shadow-lg rounded-xl p-6 sm:p-8 lg:p-10">
             <h1 class="text-2xl sm:text-3xl font-bold text-center mb-6 text-gray-800 flex items-center justify-center">
                 DafYomi with Miriam Anzovin
@@ -21,7 +17,6 @@
             </h1>
             <p class="text-center text-gray-600 mb-8">Select a Talmudic tractate and page number to view the text.</p>
 
-            <!-- Today's Daf Yomi Display -->
             <div id="todayDafYomiSection" class="text-center text-lg text-blue-700 font-semibold mb-6 p-3 bg-blue-50 rounded-lg border border-blue-200">
                 Loading today's Daf Yomi...
             </div>
@@ -53,11 +48,8 @@
             </div>
         </div>
 
-        <!-- Second Row: Nested Columns for Content and Journal/Video -->
         <div class="second-row-nested-columns-container grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Left Column: Contains Talmud and conditional YouTube (logged in) -->
             <div id="leftContentColumn" class="flex flex-col gap-8 min-h-0">
-                <!-- Talmud Content Display with internal sticky header and scrollable body -->
                 <div id="talmudContentWrapper" class="bg-gray-50 rounded-lg border border-gray-200 shadow-lg flex-grow min-h-0 overflow-hidden">
                     <div class="p-6">
                         <div id="talmudHeaderSticky" class="bg-gray-50 -mx-6 -mt-6 px-6 pt-6 pb-4 border-b border-gray-200 sticky-talmud-header">
@@ -72,25 +64,21 @@
                     </div>
                 </div>
 
-                <!-- YouTube Video for Logged-In State - Hidden by default -->
                 <div class="youtube-embed bg-white shadow-lg rounded-xl p-6 sm:p-8 lg:p-10 hidden" id="youtubeVideoSectionLoggedIn">
                     <h2 class="text-2xl font-bold text-gray-800 mb-4">Related Video</h2>
                     <div class="video-container">
-                        <iframe src="https://www.youtube.com/embed/AyxpXVUy81o" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="rounded-lg"></iframe>
+                        <iframe src="https://www.youtube.com/embed/QQJZmbipbFg" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="rounded-lg"></iframe>
                     </div>
                 </div>
             </div>
 
-            <!-- Right Column: Contains Study Journal (conditional) and YouTube (logged out) -->
             <div id="rightContentColumn" class="flex flex-col gap-8 min-h-0">
-                <!-- Study Journal Form - Hidden by default -->
                 <div class="notebook-journal bg-white rounded-xl p-6 sm:p-8 lg:p-10 shadow-lg hidden flex-grow" id="studyJournalSection">
                     <h2 class="text-2xl font-bold text-gray-800 mb-4">Study Journal</h2>
 
                     <div class="mb-6">
                         <h3 class="text-xl font-semibold text-gray-700 mb-2">Themes of the Tractate:</h3>
                         <ul id="themesList" class="theme-list">
-                            <!-- Themes will be dynamically inserted here -->
                             <li>Select a tractate to see its themes.</li>
                         </ul>
                     </div>
@@ -126,7 +114,6 @@
                     </form>
                 </div>
 
-                <!-- YouTube Video for Logged-Out State - Visible by default -->
                 <div class="youtube-embed bg-white shadow-lg rounded-xl p-6 sm:p-8 lg:p-10" id="youtubeVideoSectionLoggedOut">
                     <h2 class="text-2xl font-bold text-gray-800 mb-4">Related Video</h2>
                     <div class="video-container">
@@ -137,12 +124,10 @@
         </div>
     </div>
 
-    <!-- Message Box for Save Notes -->
     <div id="messageBox" class="message-box">
         Notes saved successfully!
     </div>
 
-    <!-- Login Modal -->
     <div id="loginModal" class="modal-overlay">
         <div class="modal-content">
             <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Login</h2>
@@ -182,7 +167,6 @@
         </div>
     </div>
 
-    <!-- Custom JavaScript -->
     <script src="js/script.js"></script>
 </body>
 </html>

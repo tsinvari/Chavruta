@@ -2,13 +2,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const tractateSelect = document.getElementById('tractateSelect');
     const pageSelect = document.getElementById('pageSelect');
     const fetchButton = document.getElementById('fetchButton');
-    const talmudContentWrapper = document.getElementById('talmudContentWrapper'); 
-    const talmudRefHeader = document.getElementById('talmudRefHeader'); 
-    const talmudTextScrollable = document.getElementById('talmudTextScrollable'); 
+    const talmudContentWrapper = document.getElementById('talmudContentWrapper');
+    const talmudRefHeader = document.getElementById('talmudRefHeader');
+    const talmudTextScrollable = document.getElementById('talmudTextScrollable');
     const loadingSpinner = document.getElementById('loadingSpinner');
     const errorMessage = document.getElementById('errorMessage');
     const themesList = document.getElementById('themesList');
-    const miriamInsightsText = document.getElementById('miriamInsightsText'); 
+    const miriamInsightsText = document.getElementById('miriamInsightsText');
     const saveNotesButton = document.getElementById('saveNotesButton');
     const messageBox = document.getElementById('messageBox');
     const authButton = document.getElementById('authButton');
@@ -19,16 +19,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalCloseButton = document.getElementById('modalCloseButton');
     const loginErrorMessage = document.getElementById('loginErrorMessage');
     const studyJournalSection = document.getElementById('studyJournalSection');
-    const youtubeVideoSectionLoggedIn = document.getElementById('youtubeVideoSectionLoggedIn'); 
-    const youtubeVideoSectionLoggedOut = document.getElementById('youtubeVideoSectionLoggedOut'); 
+    const youtubeVideoSectionLoggedIn = document.getElementById('youtubeVideoSectionLoggedIn');
+    const youtubeVideoSectionLoggedOut = document.getElementById('youtubeVideoSectionLoggedOut');
     const youtubeIframeLoggedIn = youtubeVideoSectionLoggedIn.querySelector('iframe');
     const youtubeTitleLoggedIn = youtubeVideoSectionLoggedIn.querySelector('h2');
     const youtubeIframeLoggedOut = youtubeVideoSectionLoggedOut.querySelector('iframe');
     const youtubeTitleLoggedOut = youtubeVideoSectionLoggedOut.querySelector('h2');
     const todayDafYomiSection = document.getElementById('todayDafYomiSection');
-    let toggleHebrewButton = document.getElementById('toggleHebrewButton'); 
+    let toggleHebrewButton = document.getElementById('toggleHebrewButton');
 
-    let miriamAnzovinData = {}; // Will store combined video and insights data from localStorage
+    let miriamAnzovinData = { // Initialize with empty objects, will be populated
+        videos: {},
+        insights: {}
+    };
     let reelimContentData = {}; // Will store Reelim tractate content
 
     const defaultYoutubeVideo = {
@@ -276,13 +279,13 @@ document.addEventListener('DOMContentLoaded', () => {
         "Bava Kamma", "Bava Metzia", "Bava Batra", "Sanhedrin", "Makkot",
         "Shevuot", "Avodah Zarah", "Horayot", "Zevahim", "Menahot", "Hullin",
         "Bekhorot", "Arakhin", "Temurah", "Keritot", "Me'ilah", "Tamid", "Niddah",
-        "Reelim" 
+        "Reelim"
     ];
 
     // Function to display messages in the content area (now targets the scrollable area)
     const displayMessage = (message, isError = false) => {
         talmudTextScrollable.innerHTML = `<p class="${isError ? 'text-red-600' : 'text-gray-500'} text-center">${message}</p>`;
-        if (toggleHebrewButton) { 
+        if (toggleHebrewButton) {
             toggleHebrewButton.classList.add('hidden');
         }
         talmudRefHeader.textContent = "Select a Tractate and Daf"; // Reset header title
@@ -353,7 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to update the embedded YouTube video
     const updateYouTubeVideo = (tractate, dafNumber) => {
         const key = `${tractate} ${dafNumber}`;
-        // Get video info from local storage data
+        // Get video info from combined data (JSON defaults + localStorage overrides)
         const videoInfo = (miriamAnzovinData.videos && miriamAnzovinData.videos[key]) || defaultYoutubeVideo;
 
         youtubeIframeLoggedIn.src = `https://www.youtube.com/embed/${videoInfo.id}`;
@@ -373,11 +376,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to fetch Talmudic text and intercalate it (now handles both 'a' and 'b' sides)
     const fetchTalmudText = async () => {
         const tractate = tractateSelect.value;
-        const dafNumber = pageSelect.value; 
+        const dafNumber = pageSelect.value;
 
-        errorMessage.textContent = ''; 
-        displayMessage('Loading content...'); 
-        loadingSpinner.style.display = 'block'; 
+        errorMessage.textContent = '';
+        displayMessage('Loading content...');
+        loadingSpinner.style.display = 'block';
 
         if (!tractate || !dafNumber) {
             errorMessage.textContent = 'Please select both tractate and daf number.';
@@ -459,14 +462,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         contentHtml += `<p class="text-base leading-relaxed text-gray-600 english-text-segment mb-3">${combinedText[i]}</p>`;
                     }
                 }
-                
-                talmudRefHeader.textContent = finalRef; 
-                talmudTextScrollable.innerHTML = contentHtml; 
-                
+
+                talmudRefHeader.textContent = finalRef;
+                talmudTextScrollable.innerHTML = contentHtml;
+
                 toggleHebrewButton = document.getElementById('toggleHebrewButton');
-                if (toggleHebrewButton) { 
-                    toggleHebrewButton.classList.remove('hidden'); 
-                    toggleHebrewButton.onclick = () => { 
+                if (toggleHebrewButton) {
+                    toggleHebrewButton.classList.remove('hidden');
+                    toggleHebrewButton.onclick = () => {
                         const hebrewSegments = document.querySelectorAll('.hebrew-text-segment');
                         const isHidden = hebrewSegments.length > 0 && hebrewSegments[0].classList.contains('hidden-hebrew');
                         hebrewSegments.forEach(segment => {
@@ -486,19 +489,19 @@ document.addEventListener('DOMContentLoaded', () => {
             errorMessage.textContent = `Error: ${error.message}. Please try again.`;
             displayMessage(`Error: ${error.message}. Please try again.`, true);
         } finally {
-            loadingSpinner.style.display = 'none'; 
+            loadingSpinner.style.display = 'none';
         }
     };
 
     // Function to fetch and display today's Daf Yomi
     const fetchTodayDafYomi = async () => {
         try {
-            const response = await fetch('https://www.sefaria.org/api/calendars'); 
+            const response = await fetch('https://www.sefaria.org/api/calendars');
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
-            
+
             let dafYomiItem = null;
             if (data.calendar_items && Array.isArray(data.calendar_items)) {
                 dafYomiItem = data.calendar_items.find(item => item.title && item.title.en === "Daf Yomi");
@@ -507,8 +510,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (dafYomiItem && dafYomiItem.displayValue && dafYomiItem.displayValue.en) {
                 const dafRef = dafYomiItem.displayValue.en;
                 const parts = dafRef.split(' ');
-                let tractate = parts.slice(0, -1).join(' '); 
-                let daf = parts[parts.length - 1]; 
+                let tractate = parts.slice(0, -1).join(' ');
+                let daf = parts[parts.length - 1];
 
                 const dafNumberOnly = daf.replace(/[ab]/, '');
 
@@ -517,74 +520,97 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (tractate && dafNumberOnly) {
                     if (talmudTractatesData[tractate]) {
                         tractateSelect.value = tractate;
-                        await populatePageSelect(tractate); 
-                        
+                        await populatePageSelect(tractate);
+
                         if (Array.from(pageSelect.options).some(option => option.value === dafNumberOnly)) {
                             pageSelect.value = dafNumberOnly;
-                            fetchTalmudText(); 
+                            fetchTalmudText();
                         } else {
-                            console.warn(`Daf number ${dafNumberOnly} not found in dropdown for ${tractate}. Falling back to default.`);
+                            console.warn(`script.js: Daf number ${dafNumberOnly} not found in dropdown for ${tractate}. Falling back to default.`);
                             if (pageSelect.options.length > 1) {
                                 pageSelect.value = pageSelect.options[1].value;
                                 fetchTalmudText();
                             }
                         }
                     } else {
-                        console.warn(`Tractate "${tractate}" from Daf Yomi API not found in hardcoded list. Falling back to default.`);
+                        console.warn(`script.js: Tractate "${tractate}" from Daf Yomi API not found in hardcoded list. Falling back to default.`);
                     }
                 }
             } else {
                 todayDafYomiSection.innerHTML = "Could not find Daf Yomi in Sefaria calendar data.";
             }
         } catch (error) {
-            console.error("Error fetching today's Daf Yomi:", error);
+            console.error("script.js: Error fetching today's Daf Yomi:", error);
             todayDafYomiSection.innerHTML = "Error loading today's Daf Yomi. Please try again later.";
         }
     };
 
     // --- Local Storage Data Loading and Initialization ---
     const LOCAL_STORAGE_KEY = 'miriamAnzovinStudyData';
+    const MIRIAM_VIDEOS_JSON_PATH = 'data/miriamAnzovinVideos.json';
 
-    const initializeLocalStorageData = () => {
-        let data = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (!data) {
+    const initializeLocalStorageData = async () => {
+        console.log("script.js: initializeLocalStorageData called.");
+        let storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+        let defaultVideosFromJson = {};
+
+        try {
+            const response = await fetch(MIRIAM_VIDEOS_JSON_PATH);
+            if (!response.ok) {
+                console.warn(`script.js: Could not fetch ${MIRIAM_VIDEOS_JSON_PATH}: ${response.status}. Proceeding without JSON defaults.`);
+            } else {
+                const videoDataArray = await response.json();
+                defaultVideosFromJson = videoDataArray.reduce((acc, video) => {
+                    acc[`${video.tractate} ${video.daf}`] = { title: video.title, id: video.id };
+                    return acc;
+                }, {});
+                console.log("script.js: Default videos from JSON loaded.");
+            }
+        } catch (error) {
+            console.error("script.js: Error loading default Miriam Anzovin videos from JSON:", error);
+        }
+
+        if (!storedData) {
             miriamAnzovinData = {
-                videos: {
-                    "Berakhot 2": { title: "Miriam Anzovin's Berakhot 2 Insight", id: "QQJZmbipbFg" }
-                },
+                videos: { ...defaultVideosFromJson }, // Start with videos from JSON
                 insights: {
-                    "Berakhot 2": "This is Miriam Anzovin's custom insight for Berakhot 2. Modify this text in the admin panel."
+                    "Berakhot 2": "The system taught in a term and conditions that: a reel longer than 3 minutes will not be suggested to new audiences, as carousels are the new feature that is expected, and the one that is promoted by the algorithm. Esther, the goat scholar, said: this new rule contradicts with the “book of dafs”, Sansa asked: what book is that one? Esther replied, the book that was written by Miriam the prime DafReactionarian, Sansa clarified that the book was never written, and the name of the book was “Daf HaDafim” The gemara continues asking what this book is. Madame Llama, the famous mystic scholar said: The book was written, and organically lived and lives in a new age mystical form, a manifestation of the north, the south and west. The east was preserved as an entrance to the insights of the HashTag. Sansa refuted that answer, by stating that the book was not written, but indeed there was a hashtag involved. According to Sansa, Miriam was ready to write the book, but when she discovered the hashtag her path changed."
                 }
             };
             localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(miriamAnzovinData));
-            console.log("Initialized Miriam Anzovin data in Local Storage with defaults.");
+            console.log("script.js: Initialized Miriam Anzovin data in Local Storage with JSON defaults.");
         } else {
-            miriamAnzovinData = JSON.parse(data);
-            console.log("Loaded Miriam Anzovin data from Local Storage.");
+            miriamAnzovinData = JSON.parse(storedData);
+            // Merge videos from JSON with stored data, ensuring stored data (admin edits) takes precedence
+            miriamAnzovinData.videos = { ...defaultVideosFromJson, ...miriamAnzovinData.videos };
+            console.log("script.js: Loaded Miriam Anzovin data from Local Storage, merged with JSON defaults.");
         }
+        console.log("script.js: Final miriamAnzovinData:", miriamAnzovinData);
     };
 
     const loadReelimContent = async () => {
         try {
-            const response = await fetch('data/reelim_content.json');
+            const response = await fetch('data/reelims_content.json');
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             reelimContentData = await response.json();
-            console.log("Reelim content loaded from local JSON.");
-        } catch (error) {
-            console.error("Could not load Reelim content:", error);
+            console.log("script.js: Reelim content loaded from local JSON.");
+        }
+        catch (error) {
+            console.error("script.js: Could not load Reelim content:", error);
             showMessageBox("Error loading Reelim tractate content.", true);
             reelimContentData = []; // Ensure it's an empty array on error
         }
     };
 
     // Function to initialize tractate dropdown and load data
-    const initializeApp = async () => { 
-        initializeLocalStorageData(); // Load/init data from local storage first
-        await loadReelimContent(); // Load Reelim content
+    const initializeApp = async () => {
+        console.log("script.js: initializeApp called.");
+        await initializeLocalStorageData();
+        await loadReelimContent();
 
-        tractateSelect.innerHTML = '<option value="">Select a Tractate</option>'; 
+        tractateSelect.innerHTML = '<option value="">Select a Tractate</option>';
         talmudTractatesOrder.forEach(tractate => {
             const option = document.createElement('option');
             option.value = tractate;
@@ -595,7 +621,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await fetchTodayDafYomi();
 
         if (!tractateSelect.value && talmudTractatesOrder.length > 0) {
-            tractateSelect.value = "Berakhot"; 
+            tractateSelect.value = "Berakhot";
             populatePageSelect(tractateSelect.value);
             updateThemesList(tractateSelect.value);
             if (pageSelect.options.length > 1) {
@@ -605,22 +631,24 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             updateThemesList(tractateSelect.value);
         }
-        setLoggedInState(false); 
+        setLoggedInState(false);
+        console.log("script.js: App initialization complete.");
     };
 
     // Event listener for the tractate dropdown change
     tractateSelect.addEventListener('change', async () => {
+        console.log("script.js: Tractate changed to", tractateSelect.value);
         const selectedTractate = tractateSelect.value;
         populatePageSelect(selectedTractate);
-        updateThemesList(selectedTractate); 
+        updateThemesList(selectedTractate);
 
         if (pageSelect.options.length > 1) {
-            pageSelect.value = pageSelect.options[1].value; 
+            pageSelect.value = pageSelect.options[1].value;
             fetchTalmudText();
         } else {
             displayMessage('No dafs available for this tractate.', false);
-            updateYouTubeVideo(selectedTractate, null); 
-            updateMiriamInsights(selectedTractate, null); 
+            updateYouTubeVideo(selectedTractate, null);
+            updateMiriamInsights(selectedTractate, null);
         }
     });
 
@@ -633,69 +661,81 @@ document.addEventListener('DOMContentLoaded', () => {
     // Event listener for Save Notes button (no actual save in this PoC)
     saveNotesButton.addEventListener('click', () => {
         showMessageBox('Notes saved successfully!');
+        console.log("script.js: Save Notes button clicked (no actual save implemented).");
     });
 
     // --- Login/Logout Logic for tsinvari and Miriam (redirect) ---
     const TSINVARI_USERNAME = "tsinvari";
-    const TSINVARI_PASSWORD = "notjustapoet"; 
+    const TSINVARI_PASSWORD = "notjustapoet";
     const MIRIAM_USERNAME = "miriam";
     const MIRIAM_PASSWORD = "notjustacontentcreatorbutabeautifulhumanbeing";
 
-    let isLoggedIn = false; 
+    let isLoggedIn = false;
 
     const showLoginModal = () => {
         loginModal.classList.add('show');
-        usernameInput.value = ''; 
+        usernameInput.value = '';
         passwordInput.value = '';
-        loginErrorMessage.textContent = ''; 
+        loginErrorMessage.textContent = '';
+        console.log("script.js: Login modal shown.");
     };
 
     const hideLoginModal = () => {
         loginModal.classList.remove('show');
+        console.log("script.js: Login modal hidden.");
     };
 
     // This function will primarily control UI for the 'tsinvari' interface.
     const setLoggedInState = (loggedIn) => {
         isLoggedIn = loggedIn;
         if (isLoggedIn) {
-            studyJournalSection.classList.remove('hidden'); 
-            youtubeVideoSectionLoggedOut.classList.add('hidden'); 
-            youtubeVideoSectionLoggedIn.classList.remove('hidden'); 
-            authButton.textContent = 'Logout'; 
+            studyJournalSection.classList.remove('hidden');
+            youtubeVideoSectionLoggedOut.classList.add('hidden');
+            youtubeVideoSectionLoggedIn.classList.remove('hidden');
+            authButton.textContent = 'Logout';
             authButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
             authButton.classList.add('bg-red-600', 'hover:bg-red-700');
             showMessageBox('Login successful! Welcome, ' + TSINVARI_USERNAME + '!');
+            console.log("script.js: Logged in as tsinvari. Study section visible.");
         } else {
-            studyJournalSection.classList.add('hidden'); 
-            youtubeVideoSectionLoggedOut.classList.remove('hidden'); 
-            youtubeVideoSectionLoggedIn.classList.add('hidden'); 
-            authButton.textContent = 'Login'; 
+            studyJournalSection.classList.add('hidden');
+            youtubeVideoSectionLoggedOut.classList.remove('hidden');
+            youtubeVideoSectionLoggedIn.classList.add('hidden');
+            authButton.textContent = 'Login';
             authButton.classList.remove('bg-red-600', 'hover:bg-red-700');
             authButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
-            showMessageBox('Logged out successfully.', false); 
+            showMessageBox('Logged out successfully.', false);
+            console.log("script.js: Logged out. Study section hidden.");
         }
     };
 
     const handleLogin = () => {
         const enteredUsername = usernameInput.value;
         const enteredPassword = passwordInput.value;
+        console.log(`script.js: Attempting login for username: ${enteredUsername}`);
 
         if (enteredUsername === TSINVARI_USERNAME && enteredPassword === TSINVARI_PASSWORD) {
             hideLoginModal();
             setLoggedInState(true);
+            console.log("script.js: tsinvari login successful.");
         } else if (enteredUsername === MIRIAM_USERNAME && enteredPassword === MIRIAM_PASSWORD) {
-            window.location.href = 'miriam-admin.html'; 
+            localStorage.setItem('miriamAdminLoggedIn', 'true');
+            console.log("script.js: Miriam login successful. Setting 'miriamAdminLoggedIn' to 'true' in localStorage. Redirecting...");
+            window.location.href = 'miriam-admin.html';
         }
         else {
             loginErrorMessage.textContent = 'Invalid username or password.';
+            console.log("script.js: Login failed for", enteredUsername);
         }
     };
 
     const handleAuthButtonClick = () => {
         if (isLoggedIn) {
-            setLoggedInState(false); 
+            console.log("script.js: Auth button clicked (currently logged in), initiating logout.");
+            setLoggedInState(false);
         } else {
-            showLoginModal(); 
+            console.log("script.js: Auth button clicked (currently logged out), showing login modal.");
+            showLoginModal();
         }
     };
 
@@ -711,5 +751,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Initialize the app
-    initializeApp(); 
+    initializeApp();
 });

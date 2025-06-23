@@ -18,12 +18,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const messageBox = document.getElementById('messageBox'); // For admin messages
 
     const LOCAL_STORAGE_KEY = 'miriamAnzovinStudyData'; // Same key as main app
+    const MIRIAM_ADMIN_LOGIN_FLAG = 'miriamAdminLoggedIn'; // Flag for auto-login
 
     let miriamAnzovinData = {}; // Data loaded from/saved to local storage
     let isLoggedIn = false;
 
     // Hardcoded list of Talmudic tractates and their number of folios (dapim)
-    // (Copied from script.js to keep this file self-contained for structure)
     const talmudTractatesData = {
         "Berakhot": { folios: 64 }, "Shabbat": { folios: 157 }, "Eruvin": { folios: 105 }, "Pesahim": { folios: 121 }, "Yoma": { folios: 88 },
         "Sukkah": { folios: 56 }, "Beitzah": { folios: 40 }, "Rosh Hashanah": { folios: 35 }, "Ta'anit": { folios: 31 }, "Megillah": { folios: 32 },
@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
         "Bava Metzia": { folios: 119 }, "Bava Batra": { folios: 176 }, "Sanhedrin": { folios: 113 }, "Makkot": { folios: 24 },
         "Shevuot": { folios: 49 }, "Avodah Zarah": { folios: 76 }, "Horayot": { folios: 14 }, "Zevahim": { folios: 120 }, "Menahot": { folios: 110 },
         "Hullin": { folios: 142 }, "Bekhorot": { folios: 61 }, "Arakhin": { folios: 34 }, "Temurah": { folios: 34 }, "Keritot": { folios: 28 },
-        "Me'ilah": { folios: 22 }, "Tamid": { folios: 33 }, "Niddah": { folios: 73 }
+        "Me'ilah": { folios: 22 }, "Tamid": { folios: 33 }, "Niddah": { folios: 73 }, "Reelim": { folios: 5 }
     };
 
     const talmudTractatesOrder = [
@@ -41,12 +41,13 @@ document.addEventListener('DOMContentLoaded', () => {
         "Yevamot", "Ketubot", "Nedarim", "Nazir", "Sotah", "Gittin", "Kiddushin",
         "Bava Kamma", "Bava Metzia", "Bava Batra", "Sanhedrin", "Makkot",
         "Shevuot", "Avodah Zarah", "Horayot", "Zevahim", "Menahot", "Hullin",
-        "Bekhorot", "Arakhin", "Temurah", "Keritot", "Me'ilah", "Tamid", "Niddah"
+        "Bekhorot", "Arakhin", "Temurah", "Keritot", "Me'ilah", "Tamid", "Niddah",
+        "Reelim"
     ];
 
     const defaultYoutubeVideoAdmin = {
         title: "Default Miriam's Daf Reactions!",
-        id: "AyxpXVUy81o" // A general default for admin panel if no specific data exists
+        id: "AyxpXVUy81o"
     };
 
     // --- Utility Functions ---
@@ -69,8 +70,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Local Storage Management ---
     const initializeLocalStorageData = () => {
+        console.log("admin-script.js: initializeLocalStorageData called.");
         let data = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (!data) {
+            // This default data ensures the admin panel has something to load if localStorage is empty
+            // It will also be populated by miriam_anzovin_videos.json in script.js on the main page.
             miriamAnzovinData = {
                 videos: {
                     "Berakhot 2": { title: "Miriam Anzovin's Berakhot 2 Insight", id: "QQJZmbipbFg" }
@@ -80,17 +84,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             };
             localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(miriamAnzovinData));
-            console.log("Initialized Miriam Anzovin data in Local Storage with defaults.");
+            console.log("admin-script.js: Initialized Miriam Anzovin data in Local Storage with defaults.");
         } else {
             miriamAnzovinData = JSON.parse(data);
-            console.log("Loaded Miriam Anzovin data from Local Storage.");
+            console.log("admin-script.js: Loaded Miriam Anzovin data from Local Storage.");
         }
+        console.log("admin-script.js: Current miriamAnzovinData:", miriamAnzovinData);
     };
 
     const saveLocalStorageData = () => {
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(miriamAnzovinData));
         showMessageBox('Changes saved locally!');
-        console.log("Miriam Anzovin data saved to Local Storage:", miriamAnzovinData);
+        console.log("admin-script.js: Miriam Anzovin data saved to Local Storage:", miriamAnzovinData);
     };
 
     // --- Admin UI Population and Logic ---
@@ -132,16 +137,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const tractate = adminTractateSelect.value;
         const daf = adminPageSelect.value;
         const key = `${tractate} ${daf}`;
+        console.log(`admin-script.js: Loading data for ${key}`);
 
         if (tractate && daf) {
             adminMiriamInsights.value = (miriamAnzovinData.insights && miriamAnzovinData.insights[key]) || "";
             const videoInfo = (miriamAnzovinData.videos && miriamAnzovinData.videos[key]);
             adminYoutubeTitle.value = videoInfo ? videoInfo.title : "";
             adminYoutubeId.value = videoInfo ? videoInfo.id : "";
+            console.log(`admin-script.js: Loaded Insights: "${adminMiriamInsights.value}", Video Title: "${adminYoutubeTitle.value}"`);
         } else {
             adminMiriamInsights.value = "";
             adminYoutubeTitle.value = "";
             adminYoutubeId.value = "";
+            console.log("admin-script.js: Clearing form fields.");
         }
     };
 
@@ -149,9 +157,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const tractate = adminTractateSelect.value;
         const daf = adminPageSelect.value;
         const key = `${tractate} ${daf}`;
+        console.log(`admin-script.js: Attempting to save changes for ${key}`);
 
         if (!tractate || !daf) {
             showMessageBox('Please select a Tractate and Daf to save changes.', true);
+            console.warn("admin-script.js: Save failed: Tractate or Daf not selected.");
             return;
         }
 
@@ -171,6 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         saveLocalStorageData();
+        console.log("admin-script.js: Changes prepared for saving.");
     };
 
     // --- Admin Login Logic ---
@@ -182,10 +193,12 @@ document.addEventListener('DOMContentLoaded', () => {
         usernameInput.value = '';
         passwordInput.value = '';
         loginErrorMessage.textContent = '';
+        console.log("admin-script.js: Login modal shown.");
     };
 
     const hideLoginModal = () => {
         loginModal.classList.remove('show');
+        console.log("admin-script.js: Login modal hidden.");
     };
 
     const setAdminLoggedInState = (loggedIn) => {
@@ -203,33 +216,43 @@ document.addEventListener('DOMContentLoaded', () => {
                 adminPageSelect.value = "2"; // Default to Daf 2
                 loadDafDataIntoForm();
             }
+            console.log("admin-script.js: Admin logged in successfully. UI updated.");
         } else {
             adminContent.classList.add('hidden');
             adminAuthButton.textContent = 'Login';
             adminAuthButton.classList.remove('bg-red-600', 'hover:bg-red-700');
             adminAuthButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
             adminStatusText.textContent = "Please log in to manage content.";
+            console.log("admin-script.js: Admin logged out. UI updated.");
         }
     };
 
     const handleAdminLogin = () => {
         const enteredUsername = usernameInput.value;
         const enteredPassword = passwordInput.value;
+        console.log(`admin-script.js: Attempting admin login for username: ${enteredUsername}`);
 
         if (enteredUsername === correctAdminUsername && enteredPassword === correctAdminPassword) {
             hideLoginModal();
             setAdminLoggedInState(true);
             showMessageBox('Logged in as Miriam!');
+            localStorage.setItem(MIRIAM_ADMIN_LOGIN_FLAG, 'true'); // Set flag on successful login
+            console.log("admin-script.js: Miriam login successful. Flag set in localStorage.");
         } else {
             loginErrorMessage.textContent = 'Invalid username or password.';
+            console.warn("admin-script.js: Admin login failed for", enteredUsername);
         }
     };
 
     const handleAdminAuthButtonClick = () => {
         if (isLoggedIn) {
+            console.log("admin-script.js: Admin Auth button clicked (currently logged in), initiating logout.");
             setAdminLoggedInState(false);
             showMessageBox('Logged out from Admin Panel.');
+            localStorage.removeItem(MIRIAM_ADMIN_LOGIN_FLAG); // Remove flag on logout
+            console.log("admin-script.js: Miriam logged out. Flag removed from localStorage.");
         } else {
+            console.log("admin-script.js: Admin Auth button clicked (currently logged out), showing login modal.");
             showLoginModal();
         }
     };
@@ -238,8 +261,12 @@ document.addEventListener('DOMContentLoaded', () => {
     adminTractateSelect.addEventListener('change', () => {
         populateAdminPageSelect(adminTractateSelect.value);
         loadDafDataIntoForm();
+        console.log("admin-script.js: Admin tractate changed.");
     });
-    adminPageSelect.addEventListener('change', loadDafDataIntoForm);
+    adminPageSelect.addEventListener('change', () => {
+        loadDafDataIntoForm();
+        console.log("admin-script.js: Admin daf changed.");
+    });
     saveAdminChangesButton.addEventListener('click', handleSaveAdminChanges);
     adminAuthButton.addEventListener('click', handleAdminAuthButtonClick);
     modalLoginButton.addEventListener('click', handleAdminLogin);
@@ -253,5 +280,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial setup
     initializeLocalStorageData(); // Load data on startup for both logged-in/out states
-    setAdminLoggedInState(false); // Start as logged out
+
+    // Check if Miriam was already logged in (from a previous session or redirect)
+    const miriamFlag = localStorage.getItem(MIRIAM_ADMIN_LOGIN_FLAG);
+    console.log(`admin-script.js: Initial check for '${MIRIAM_ADMIN_LOGIN_FLAG}' in localStorage: ${miriamFlag}`);
+    if (miriamFlag === 'true') {
+        setAdminLoggedInState(true);
+        console.log("admin-script.js: Auto-logged in based on localStorage flag.");
+    } else {
+        setAdminLoggedInState(false); // Start as logged out
+        console.log("admin-script.js: Not auto-logged in.");
+    }
 });
